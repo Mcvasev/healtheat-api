@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
+const SavedList = require('./savedList')
 const Recipe = require('./recipe')
 
 const app = express();
@@ -27,11 +28,31 @@ app.get('/api/recipe', (req, res) => {
             res.json(recipe);
         })
     } else {
-        Recipe.find({ title: new RegExp(req.query.search)}).then((recipe) => {
+        Recipe.find({ title: new RegExp(req.query.search) }).then((recipe) => {
             res.json(recipe);
         })
     }
 })
+
+app.get('/api/post/savedList/:id', (req, res) => {
+    SavedList.findOne({ _id: req.params.id })
+    .then((list) => {
+        if (!list){
+            res.status(404).send('error');
+        }
+        Recipe.find({_id: {$in: [list.breakfast, list.lounch, list.dinner]}})
+        .then((recipeList) => {
+            res.status(200).json(recipeList);
+        })
+    })
+    .catch(() => {
+        res.status(404).send('error');
+    })
+    
+})
+
+
+
 
 app.get('/api/recipe/:id', (req, res) => {
 
@@ -48,6 +69,10 @@ app.get('/api/recipe/:id', (req, res) => {
         })
 })
 
+app.post('/api/post/savedList', async function (req, res) {
+    const response = await SavedList.insertMany({ breakfast: req.body.breakfastId, lounch: req.body.lounchId, dinner: req.body.dinnerId });
+    res.json(response[0]);
+})
 
 app.listen(3001, () => {
     console.log("server is on port 3001")
