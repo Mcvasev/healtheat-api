@@ -74,6 +74,6 @@ app.post('/api/post/savedList', async function (req, res) {
     res.json(response[0]);
 })
 
-app.listen(3001, () => {
+app.listen(process.env.PORT || 3001, () => {
     console.log("server is on port 3001")
 })
